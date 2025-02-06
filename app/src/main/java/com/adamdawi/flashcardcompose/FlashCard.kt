@@ -9,9 +9,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,19 +31,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.adamdawi.flashcardcompose.ui.theme.Blue
+import com.adamdawi.flashcardcompose.ui.theme.Green
+import com.adamdawi.flashcardcompose.ui.theme.Red
 import kotlin.math.roundToInt
 
 private const val FLIP_CARD_ANIMATION_TIME = 400
 private const val OFFSET_LIMIT = 120
+private val ROUNDED_CORNER_RADIUS = 16.dp
 
 @Composable
-fun MealCard(
-    modifier: Modifier = Modifier
+fun FlashCard(
+    modifier: Modifier = Modifier,
+    onLeftSwipe: () -> Unit = {},
+    onRightSwipe: () -> Unit = {}
 ) {
     val isCardFlipped = remember {
         mutableStateOf(false)
@@ -65,62 +73,61 @@ fun MealCard(
                 animatedCardOffset.y.roundToInt()
             )
         }
-        .fillMaxSize()
-        .padding(top = 150.dp, bottom = 150.dp, start = 50.dp, end = 50.dp)
+        .fillMaxWidth()
+        .height(500.dp)
+        .padding(start = 25.dp, end = 25.dp, top = 25.dp)
         .border(
-            BorderStroke(4.dp, cardBorderColor.value),
+            BorderStroke(2.dp, cardBorderColor.value),
             shape = RoundedCornerShape(12.dp)
         )
         .pointerInput(Unit) {
             detectDragGestures(
                 onDragEnd = {
                     //Swipe right
-                    if(cardOffset.value.x> OFFSET_LIMIT){
+                    if (cardOffset.value.x > OFFSET_LIMIT) {
 //                        getRandomFood()
                         cardOffset.value = Offset.Zero
                         cardBorderColor.value = Color.Transparent
-//                        _rightSwipeCounter.intValue++
+                        onRightSwipe()
                     }
                     //Swipe left
-                    else if(cardOffset.value.x<-OFFSET_LIMIT){
+                    else if (cardOffset.value.x < -OFFSET_LIMIT) {
 //                        getRandomFood()
                         cardOffset.value = Offset.Zero
                         cardBorderColor.value = Color.Transparent
-//                        _leftSwipeCounter.intValue++
-                    }
-                    else cardOffset.value = Offset.Zero
+                        onLeftSwipe()
+                    } else cardOffset.value = Offset.Zero
                 },
                 onDragCancel = {
                     //Swipe right
-                    if(cardOffset.value.x> OFFSET_LIMIT){
+                    if (cardOffset.value.x > OFFSET_LIMIT) {
 //                        getRandomFood()
                         cardOffset.value = Offset.Zero
                         cardBorderColor.value = Color.Transparent
-//                        _rightSwipeCounter.intValue++
+                        onRightSwipe()
                     }
                     //Swipe left
-                    else if(cardOffset.value.x<-OFFSET_LIMIT){
+                    else if (cardOffset.value.x < -OFFSET_LIMIT) {
 //                        getRandomFood()
                         cardOffset.value = Offset.Zero
                         cardBorderColor.value = Color.Transparent
-//                        _leftSwipeCounter.intValue++
-                    }
-                    else cardOffset.value = Offset.Zero
+                        onLeftSwipe()
+                    } else cardOffset.value = Offset.Zero
                 },
                 onDrag = { change, dragAmount ->
                     change.consume()
                     cardOffset.value = Offset(
-                        cardOffset.value.x+dragAmount.x,
-                        cardOffset.value.y+dragAmount.y
+                        cardOffset.value.x + dragAmount.x,
+                        cardOffset.value.y + dragAmount.y
                     )
                     //close to right
-                    if(cardOffset.value.x>OFFSET_LIMIT){
-                        cardBorderColor.value = Color.Green
+                    if (cardOffset.value.x > OFFSET_LIMIT) {
+                        cardBorderColor.value = Green
 //                        _state.value = _state.value.copy(isSwipeToRightShaking = true)
                     }
                     //close to left
-                    else if(cardOffset.value.x<-OFFSET_LIMIT){
-                        cardBorderColor.value = Color.Red
+                    else if (cardOffset.value.x < -OFFSET_LIMIT) {
+                        cardBorderColor.value = Red
 //                        _state.value = _state.value.copy(isSwipeToLeftShaking = true)
                     }
                     //neutral
@@ -146,14 +153,16 @@ fun MealCard(
                     cameraDistance = 30f
                 }
                 .alpha(alphaImage)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.LightGray)
+                .clip(RoundedCornerShape(ROUNDED_CORNER_RADIUS))
+                .background(Blue)
             ){
                 LazyColumn(modifier = Modifier
                     .fillMaxSize()
                     .align(Alignment.Center)
                     .padding(12.dp),
-                    userScrollEnabled = isCardFlipped.value
+                    userScrollEnabled = isCardFlipped.value,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ){
                     item{
                         Text(
@@ -162,8 +171,8 @@ fun MealCard(
                                 .fillMaxWidth()
                                 .padding(8.dp),
                             fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            color = Color.White
                         )
                     }
                 }
@@ -176,14 +185,16 @@ fun MealCard(
                     cameraDistance = 30f
                 }
                 .alpha(alphaDescription)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.LightGray)
+                .clip(RoundedCornerShape(ROUNDED_CORNER_RADIUS))
+                .background(Blue)
             ) {
                 LazyColumn(modifier = Modifier
                     .fillMaxSize()
                     .align(Alignment.Center)
                     .padding(12.dp),
-                    userScrollEnabled = isCardFlipped.value
+                    userScrollEnabled = isCardFlipped.value,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ){
                     item{
                         Text(
@@ -192,8 +203,8 @@ fun MealCard(
                                 .fillMaxWidth()
                                 .padding(8.dp),
                             fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            color = Color.White
                         )
                     }
                 }
@@ -229,3 +240,9 @@ fun buildOffsetAnimation(targetValue: Offset) =
         targetValue = targetValue,
         label = ""
     ).value
+
+@Preview
+@Composable
+private fun FlashCardPreview() {
+    FlashCard()
+}
