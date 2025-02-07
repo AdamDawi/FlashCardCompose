@@ -1,5 +1,7 @@
 package com.adamdawi.flashcardcompose
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,9 +25,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +43,17 @@ import com.adamdawi.flashcardcompose.ui.theme.FlashCardComposeTheme
 import com.adamdawi.flashcardcompose.ui.theme.Green
 import com.adamdawi.flashcardcompose.ui.theme.Red
 
+private val listOfFlashCards = mapOf(
+    "hello" to "hola",
+    "not much" to "no mucho",
+    "fine" to "bien",
+    "one" to "uno",
+    "two" to "dos",
+    "three" to "tres",
+    "bathroom" to "El Baño",
+    "kitchen" to "La cocina"
+)
+
 @Composable
 fun MainScreen() {
     val redCounter = remember {
@@ -46,6 +61,28 @@ fun MainScreen() {
     }
 
     val greenCounter = remember {
+        mutableIntStateOf(0)
+    }
+
+    val greenCounterBg = remember {
+        mutableStateOf(Color.Transparent)
+    }
+
+    val animatedGreenCounterBg = animateColorAsState(
+        targetValue = greenCounterBg.value,
+        label = ""
+    )
+
+    val redCounterBg = remember {
+        mutableStateOf(Color.Transparent)
+    }
+
+    val animatedRedCounterBg = animateColorAsState(
+        targetValue = redCounterBg.value,
+        label = ""
+    )
+
+    val currentFlashCardNumber = remember {
         mutableIntStateOf(0)
     }
     Scaffold(
@@ -58,11 +95,15 @@ fun MainScreen() {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TopButtons()
+            TopButtons(
+                currentQuestionNumber = currentFlashCardNumber.intValue
+            )
             HorizontalDivider(thickness = 3.dp, color = Blue)
             CountersRow(
                 redCounter = redCounter.intValue,
-                greenCounter = greenCounter.intValue
+                greenCounter = greenCounter.intValue,
+                greenCounterBg = animatedGreenCounterBg.value,
+                redCounterBg = animatedRedCounterBg.value
             )
             Column(
                 modifier = Modifier
@@ -70,11 +111,29 @@ fun MainScreen() {
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 FlashCard(
+                    frontText = listOfFlashCards.keys.elementAt(currentFlashCardNumber.intValue),
+                    backText = listOfFlashCards.values.elementAt(currentFlashCardNumber.intValue),
                     onLeftSwipe = {
                         redCounter.intValue++
+                        currentFlashCardNumber.intValue++
+                        greenCounterBg.value = Color.Transparent
+                        redCounterBg.value = Color.Transparent
                     },
                     onRightSwipe = {
                         greenCounter.intValue++
+                        currentFlashCardNumber.intValue++
+                        greenCounterBg.value = Color.Transparent
+                        redCounterBg.value = Color.Transparent
+                    },
+                    onCloseToLeft = {
+                        redCounterBg.value = Red
+                    },
+                    onCloseToRight = {
+                        greenCounterBg.value = Green
+                    },
+                    onNeutral = {
+                        greenCounterBg.value = Color.Transparent
+                        redCounterBg.value = Color.Transparent
                     }
                 )
                 BottomButtons()
@@ -85,7 +144,8 @@ fun MainScreen() {
 
 @Composable
 private fun TopButtons(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    currentQuestionNumber: Int
 ) {
     Row(
         modifier = modifier
@@ -106,7 +166,7 @@ private fun TopButtons(
             )
         }
         Text(
-            text = "1/88",
+            text = "${currentQuestionNumber+1}/88",
             color = Color.White,
             textAlign = TextAlign.Center,
             fontSize = 18.sp,
@@ -130,7 +190,9 @@ private fun TopButtons(
 private fun CountersRow(
     modifier: Modifier = Modifier,
     redCounter: Int,
-    greenCounter: Int
+    greenCounter: Int,
+    greenCounterBg: Color,
+    redCounterBg: Color
 ) {
     Row(
         modifier = modifier
@@ -151,7 +213,14 @@ private fun CountersRow(
                         bottomStart = 0.dp,
                         bottomEnd = 100.dp
                     )
-                ),
+                )
+                .clip(RoundedCornerShape(
+                    topStart = 0.dp,
+                    topEnd = 100.dp,
+                    bottomStart = 0.dp,
+                    bottomEnd = 100.dp
+                ))
+                .background(redCounterBg),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -176,9 +245,19 @@ private fun CountersRow(
                         bottomStart = 100.dp,
                         bottomEnd = 0.dp
                     )
-                ),
+                )
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 100.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 100.dp,
+                        bottomEnd = 0.dp
+                    )
+                )
+                .background(greenCounterBg),
             contentAlignment = Alignment.Center
         ) {
+
             Text(
                 text = greenCounter.toString(),
                 color = Green,
