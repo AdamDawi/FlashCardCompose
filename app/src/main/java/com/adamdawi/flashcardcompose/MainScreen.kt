@@ -1,6 +1,7 @@
 package com.adamdawi.flashcardcompose
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -85,6 +87,16 @@ fun MainScreen() {
     val currentFlashCardNumber = remember {
         mutableIntStateOf(0)
     }
+    val animatedAlphaRedCounter = animateFloatAsState(
+        targetValue = if (redCounterBg.value == Red) 1f else 0f,
+        label = ""
+    )
+
+    val animatedAlphaGreenCounter = animateFloatAsState(
+        targetValue = if (greenCounterBg.value == Green) 1f else 0f,
+        label = ""
+    )
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
@@ -103,7 +115,9 @@ fun MainScreen() {
                 redCounter = redCounter.intValue,
                 greenCounter = greenCounter.intValue,
                 greenCounterBg = animatedGreenCounterBg.value,
-                redCounterBg = animatedRedCounterBg.value
+                redCounterBg = animatedRedCounterBg.value,
+                redCounterAlpha = animatedAlphaRedCounter.value,
+                greenCounterAlpha = animatedAlphaGreenCounter.value
             )
             Column(
                 modifier = Modifier
@@ -111,8 +125,8 @@ fun MainScreen() {
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 FlashCard(
-                    frontText = listOfFlashCards.keys.elementAt(currentFlashCardNumber.intValue),
-                    backText = listOfFlashCards.values.elementAt(currentFlashCardNumber.intValue),
+                    frontText = listOfFlashCards.keys.elementAt(if(currentFlashCardNumber.intValue<listOfFlashCards.keys.size) currentFlashCardNumber.intValue else 0),
+                    backText = listOfFlashCards.values.elementAt(if(currentFlashCardNumber.intValue<listOfFlashCards.keys.size) currentFlashCardNumber.intValue else 0),
                     onLeftSwipe = {
                         redCounter.intValue++
                         currentFlashCardNumber.intValue++
@@ -192,7 +206,9 @@ private fun CountersRow(
     redCounter: Int,
     greenCounter: Int,
     greenCounterBg: Color,
-    redCounterBg: Color
+    redCounterBg: Color,
+    redCounterAlpha: Float,
+    greenCounterAlpha: Float
 ) {
     Row(
         modifier = modifier
@@ -223,13 +239,26 @@ private fun CountersRow(
                 .background(redCounterBg),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = redCounter.toString(),
-                color = Red,
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Box {
+                Text(
+                    modifier = Modifier
+                        .alpha(alpha = redCounterAlpha),
+                    text = "+1",
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    modifier = Modifier
+                        .alpha(alpha = 1f - redCounterAlpha),
+                    text = redCounter.toString(),
+                    color = Red,
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         Box(
@@ -257,14 +286,27 @@ private fun CountersRow(
                 .background(greenCounterBg),
             contentAlignment = Alignment.Center
         ) {
+            Box{
+                Text(
+                    modifier = Modifier
+                        .alpha(alpha = greenCounterAlpha),
+                    text = "+1",
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    modifier = Modifier
+                        .alpha(alpha = 1f - greenCounterAlpha),
+                    text = greenCounter.toString(),
+                    color = Green,
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
-            Text(
-                text = greenCounter.toString(),
-                color = Green,
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
         }
     }
 }
