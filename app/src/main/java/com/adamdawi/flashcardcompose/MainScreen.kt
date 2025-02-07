@@ -1,6 +1,8 @@
 package com.adamdawi.flashcardcompose
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,9 +46,10 @@ import com.adamdawi.flashcardcompose.ui.theme.Blue
 import com.adamdawi.flashcardcompose.ui.theme.DarkBlue
 import com.adamdawi.flashcardcompose.ui.theme.FlashCardComposeTheme
 import com.adamdawi.flashcardcompose.ui.theme.Green
+import com.adamdawi.flashcardcompose.ui.theme.LightBlue
 import com.adamdawi.flashcardcompose.ui.theme.Red
 
-private val listOfFlashCards = mapOf(
+private val listOfFlashCardsTexts = mapOf(
     "hello" to "hola",
     "not much" to "no mucho",
     "fine" to "bien",
@@ -56,44 +60,55 @@ private val listOfFlashCards = mapOf(
     "kitchen" to "La cocina"
 )
 
+private const val COUNTERS_ANIMATION_TIME = 200
+
+data class CountersState(
+    val redCounter: Int = 0,
+    val greenCounter: Int = 0,
+    val greenCounterBg: Color = Color.Transparent,
+    val redCounterBg: Color = Color.Transparent
+)
+
 @Composable
 fun MainScreen() {
-    val redCounter = remember {
-        mutableIntStateOf(0)
-    }
-
-    val greenCounter = remember {
-        mutableIntStateOf(0)
-    }
-
-    val greenCounterBg = remember {
-        mutableStateOf(Color.Transparent)
-    }
-
-    val animatedGreenCounterBg = animateColorAsState(
-        targetValue = greenCounterBg.value,
-        label = ""
-    )
-
-    val redCounterBg = remember {
-        mutableStateOf(Color.Transparent)
-    }
-
-    val animatedRedCounterBg = animateColorAsState(
-        targetValue = redCounterBg.value,
-        label = ""
-    )
 
     val currentFlashCardNumber = remember {
         mutableIntStateOf(0)
     }
+    // Counters states section
+    val countersState = remember {
+        mutableStateOf(CountersState())
+    }
+
+    val animatedGreenCounterBg = animateColorAsState(
+        targetValue = countersState.value.greenCounterBg,
+        animationSpec = TweenSpec(
+            durationMillis = COUNTERS_ANIMATION_TIME
+        ),
+        label = ""
+    )
+
+    val animatedRedCounterBg = animateColorAsState(
+        targetValue = countersState.value.redCounterBg,
+        animationSpec = TweenSpec(
+            durationMillis = COUNTERS_ANIMATION_TIME
+        ),
+        label = ""
+    )
+
     val animatedAlphaRedCounter = animateFloatAsState(
-        targetValue = if (redCounterBg.value == Red) 1f else 0f,
+        targetValue = if (countersState.value.redCounterBg == Red) 1f else 0f,
+        animationSpec = TweenSpec(
+            durationMillis = COUNTERS_ANIMATION_TIME
+        ),
         label = ""
     )
 
     val animatedAlphaGreenCounter = animateFloatAsState(
-        targetValue = if (greenCounterBg.value == Green) 1f else 0f,
+        targetValue = if (countersState.value.greenCounterBg == Green) 1f else 0f,
+        animationSpec = TweenSpec(
+            durationMillis = COUNTERS_ANIMATION_TIME
+        ),
         label = ""
     )
 
@@ -112,42 +127,60 @@ fun MainScreen() {
             )
             HorizontalDivider(thickness = 3.dp, color = Blue)
             CountersRow(
-                redCounter = redCounter.intValue,
-                greenCounter = greenCounter.intValue,
+                redCounter = countersState.value.redCounter,
+                greenCounter = countersState.value.greenCounter,
                 greenCounterBg = animatedGreenCounterBg.value,
                 redCounterBg = animatedRedCounterBg.value,
                 redCounterAlpha = animatedAlphaRedCounter.value,
                 greenCounterAlpha = animatedAlphaGreenCounter.value
             )
+            Spacer(modifier = Modifier.height(22.dp))
             Column(
                 modifier = Modifier
                     .fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 FlashCard(
-                    frontText = listOfFlashCards.keys.elementAt(if(currentFlashCardNumber.intValue<listOfFlashCards.keys.size) currentFlashCardNumber.intValue else 0),
-                    backText = listOfFlashCards.values.elementAt(if(currentFlashCardNumber.intValue<listOfFlashCards.keys.size) currentFlashCardNumber.intValue else 0),
+                    frontText = listOfFlashCardsTexts.keys.elementAt(currentFlashCardNumber.intValue % listOfFlashCardsTexts.size), //Avoided OutOfBounds index error with %
+                    backText = listOfFlashCardsTexts.values.elementAt(currentFlashCardNumber.intValue % listOfFlashCardsTexts.size), //Avoided OutOfBounds index error with %
                     onLeftSwipe = {
-                        redCounter.intValue++
+                        countersState.value = countersState.value.copy(
+                            redCounter = countersState.value.redCounter + 1,
+                            greenCounterBg = Color.Transparent,
+                            redCounterBg = Color.Transparent
+                        )
                         currentFlashCardNumber.intValue++
-                        greenCounterBg.value = Color.Transparent
-                        redCounterBg.value = Color.Transparent
                     },
                     onRightSwipe = {
-                        greenCounter.intValue++
+                        countersState.value = countersState.value.copy(
+                            greenCounter = countersState.value.greenCounter + 1,
+                            greenCounterBg = Color.Transparent,
+                            redCounterBg = Color.Transparent
+                        )
                         currentFlashCardNumber.intValue++
-                        greenCounterBg.value = Color.Transparent
-                        redCounterBg.value = Color.Transparent
                     },
                     onCloseToLeft = {
-                        redCounterBg.value = Red
+                        countersState.value = countersState.value.copy(
+                            redCounterBg = Red
+                        )
                     },
                     onCloseToRight = {
-                        greenCounterBg.value = Green
+                        countersState.value = countersState.value.copy(
+                            greenCounterBg = Green
+                        )
                     },
                     onNeutral = {
-                        greenCounterBg.value = Color.Transparent
-                        redCounterBg.value = Color.Transparent
+                        countersState.value = countersState.value.copy(
+                            greenCounterBg = Color.Transparent,
+                            redCounterBg = Color.Transparent
+                        )
+                    },
+                    topButtonRow = {
+                        FunctionButtonRow(
+                            firstIcon = R.drawable.sound_high,
+                            secondIcon = R.drawable.baseline_star_outline_24
+                        )
                     }
                 )
                 BottomButtons()
@@ -202,7 +235,6 @@ private fun TopButtons(
 
 @Composable
 private fun CountersRow(
-    modifier: Modifier = Modifier,
     redCounter: Int,
     greenCounter: Int,
     greenCounterBg: Color,
@@ -211,103 +243,98 @@ private fun CountersRow(
     greenCounterAlpha: Float
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Box(
-            modifier = Modifier
-                .width(60.dp)
-                .height(38.dp)
-                .border(
-                    width = 1.dp,
-                    color = Red,
-                    RoundedCornerShape(
-                        topStart = 0.dp,
-                        topEnd = 100.dp,
-                        bottomStart = 0.dp,
-                        bottomEnd = 100.dp
-                    )
-                )
-                .clip(RoundedCornerShape(
-                    topStart = 0.dp,
-                    topEnd = 100.dp,
-                    bottomStart = 0.dp,
-                    bottomEnd = 100.dp
-                ))
-                .background(redCounterBg),
-            contentAlignment = Alignment.Center
-        ) {
-            Box {
-                Text(
-                    modifier = Modifier
-                        .alpha(alpha = redCounterAlpha),
-                    text = "+1",
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    modifier = Modifier
-                        .alpha(alpha = 1f - redCounterAlpha),
-                    text = redCounter.toString(),
-                    color = Red,
-                    textAlign = TextAlign.Center,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
+        CounterBox(
+            counter = redCounter,
+            counterBg = redCounterBg,
+            counterAlpha = redCounterAlpha,
+            textColor = Red,
+            borderShape = RoundedCornerShape(
+                topStart = 0.dp,
+                topEnd = 100.dp,
+                bottomStart = 0.dp,
+                bottomEnd = 100.dp
+            )
+        )
+        CounterBox(
+            counter = greenCounter,
+            counterBg = greenCounterBg,
+            counterAlpha = greenCounterAlpha,
+            textColor = Green,
+            borderShape = RoundedCornerShape(
+                topStart = 100.dp,
+                topEnd = 0.dp,
+                bottomStart = 100.dp,
+                bottomEnd = 0.dp
+            )
+        )
+    }
+}
 
-        Box(
-            modifier = Modifier
-                .width(60.dp)
-                .height(38.dp)
-                .border(
-                    width = 1.dp,
-                    color = Green,
-                    RoundedCornerShape(
-                        topStart = 100.dp,
-                        topEnd = 0.dp,
-                        bottomStart = 100.dp,
-                        bottomEnd = 0.dp
-                    )
-                )
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 100.dp,
-                        topEnd = 0.dp,
-                        bottomStart = 100.dp,
-                        bottomEnd = 0.dp
-                    )
-                )
-                .background(greenCounterBg),
-            contentAlignment = Alignment.Center
-        ) {
-            Box{
-                Text(
-                    modifier = Modifier
-                        .alpha(alpha = greenCounterAlpha),
-                    text = "+1",
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    modifier = Modifier
-                        .alpha(alpha = 1f - greenCounterAlpha),
-                    text = greenCounter.toString(),
-                    color = Green,
-                    textAlign = TextAlign.Center,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
+@Composable
+private fun CounterBox(
+    counter: Int,
+    counterBg: Color,
+    counterAlpha: Float,
+    textColor: Color,
+    borderShape: RoundedCornerShape
+) {
+    Box(
+        modifier = Modifier
+            .width(60.dp)
+            .height(38.dp)
+            .border(1.dp, textColor, borderShape)
+            .clip(borderShape)
+            .background(counterBg),
+        contentAlignment = Alignment.Center
+    ) {
+        Box {
+            Text(
+                modifier = Modifier.alpha(counterAlpha),
+                text = "+1",
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                modifier = Modifier.alpha(1f - counterAlpha), //inversed alpha
+                text = counter.toString(),
+                color = textColor,
+                textAlign = TextAlign.Center,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
+    }
+}
+@Composable
+fun FunctionButtonRow(
+    modifier: Modifier = Modifier,
+    @DrawableRes firstIcon: Int,
+    @DrawableRes secondIcon: Int
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(26.dp),
+            painter = painterResource(firstIcon),
+            contentDescription = null,
+            tint = LightBlue
+        )
+        Icon(
+            modifier = Modifier
+                .size(26.dp),
+            painter = painterResource(secondIcon),
+            contentDescription = null,
+            tint = LightBlue
+        )
     }
 }
 
@@ -346,7 +373,6 @@ private fun BottomButtons(
         }
     }
 }
-
 
 @Preview
 @Composable
