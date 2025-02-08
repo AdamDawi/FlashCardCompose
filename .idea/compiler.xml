@@ -3,6 +3,8 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
       <module name="Flash_Card_Compose.app" target="21" />
+      <module name="Flashcard_Compose.app" target="21" />
+      <module name="FlashcardCompose.app" target="21" />
     </bytecodeTargetLevel>
   </component>
 </project>
