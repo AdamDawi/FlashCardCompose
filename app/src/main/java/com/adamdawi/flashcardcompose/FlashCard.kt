@@ -48,25 +48,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-private const val FLIP_CARD_ANIMATION_TIME = 400
-private const val ALPHA_ANIMATION_TIME = FLIP_CARD_ANIMATION_TIME - 150
-private const val SWIPE_THRESHOLD = 70f
-private val ROUNDED_CORNER_RADIUS = 16.dp
-private const val CAMERA_DISTANCE = 30f
+private const val FLIP_ANIMATION_DURATION = 400
+private const val ALPHA_ANIMATION_DURATION = FLIP_ANIMATION_DURATION - 150
+private const val SWIPE_GESTURE_THRESHOLD = 70f
+private val CARD_CORNER_RADIUS = 16.dp
+private const val CARD_CAMERA_DISTANCE = 30f
 private val CARD_HEIGHT = 480.dp
 private val CARD_WIDTH = 320.dp
 private const val SWIPE_ANIMATION_TIME = 200
 private val BORDER_STROKE_WIDTH = 2.dp
 private const val AFTER_SWIPE_DELAY = 70L
 
-private data class CardState(
-    val isFlipped: Boolean = false,
-    val borderColor: Color = Color.Transparent,
-    val alpha: Float = 1f,
-    val rotationY: Float = 0f
-)
 /**
- * A customizable flashcard component with flip and swipe animations.
+ * FlashCard is a customizable component with flip and swipe animations.
+ * It allows users to interact with the card by tapping to flip or swiping left/right.
  *
  * @param modifier Modifier to apply to the flashcard container.
  * @param frontText Text displayed on the front side of the card.
@@ -84,11 +79,11 @@ private data class CardState(
  * @param alphaDuration Duration of the alpha animation in milliseconds.
  * @param swipeDuration Duration of the swipe animation in milliseconds.
  * @param swipeThreshold Threshold for detecting a swipe gesture.
- * @param onLeftSwipe Callback invoked when the card is swiped to the left.
- * @param onRightSwipe Callback invoked when the card is swiped to the right.
- * @param onCloseToRight Callback invoked when the card is close to being swiped to the right.
- * @param onCloseToLeft Callback invoked when the card is close to being swiped to the left.
- * @param onNeutral Callback invoked when the card is in a neutral position.
+ * @param onSwipeLeft Callback invoked when the card is swiped to the left.
+ * @param onSwipeRight Callback invoked when the card is swiped to the right.
+ * @param onApproachingRightSwipe Callback invoked when the card is close to being swiped to the right.
+ * @param onApproachingLeftSwipe Callback invoked when the card is close to being swiped to the left.
+ * @param onNeutralPosition Callback invoked when the card is in a neutral position.
  */
 @Composable
 fun FlashCard(
@@ -102,31 +97,31 @@ fun FlashCard(
     leftSwipeColor: Color = Red,
     backgroundColor: Color = Blue,
     textColor: Color = Color.White,
-    shape: Shape = RoundedCornerShape(ROUNDED_CORNER_RADIUS),
+    shape: Shape = RoundedCornerShape(CARD_CORNER_RADIUS),
     topButtonRow: @Composable (() -> Unit)? = null,
-    flipDuration: Int = FLIP_CARD_ANIMATION_TIME,
-    alphaDuration: Int = ALPHA_ANIMATION_TIME,
+    flipDuration: Int = FLIP_ANIMATION_DURATION,
+    alphaDuration: Int = ALPHA_ANIMATION_DURATION,
     swipeDuration: Int = SWIPE_ANIMATION_TIME,
-    swipeThreshold: Float = SWIPE_THRESHOLD,
-    onLeftSwipe: () -> Unit = {},
-    onRightSwipe: () -> Unit = {},
-    onCloseToRight: () -> Unit = {},
-    onCloseToLeft: () -> Unit = {},
-    onNeutral: () -> Unit = {}
+    swipeThreshold: Float = SWIPE_GESTURE_THRESHOLD,
+    onSwipeLeft: () -> Unit = {},
+    onSwipeRight: () -> Unit = {},
+    onApproachingRightSwipe: () -> Unit = {},
+    onApproachingLeftSwipe: () -> Unit = {},
+    onNeutralPosition: () -> Unit = {}
 ) {
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
     val screenWidthPx = with(LocalDensity.current) { screenWidthDp.dp.toPx() }
     val scope = rememberCoroutineScope()
-    val cardState = remember { mutableStateOf(CardState()) } // Grouped state
-    val cardAlpha = animateAlphaAsState(targetValue = if (!cardState.value.isFlipped) 1f else 0f, alphaDuration)
-    val cardRotationY = animateRotationYAsState(
-        targetValue = if (!cardState.value.isFlipped) 0f else 180f,
-        flipDuration
-    )
-    val animatedCardOffsetX = remember {
+    val isCardFlipped = remember { mutableStateOf(false) }
+    val cardBorderColor = remember { mutableStateOf(Color.Transparent) }
+    val cardSidesAlpha = animateAlphaAsState(targetValue = if (!isCardFlipped.value) 1f else 0f, alphaDuration)
+    val cardRotationY = remember {
         Animatable(0f)
     }
-    val animatedCardOffsetY = remember {
+    val cardOffsetX = remember {
+        Animatable(0f)
+    }
+    val cardOffsetY = remember {
         Animatable(0f)
     }
     Box(
@@ -143,31 +138,33 @@ fun FlashCard(
         Box(modifier = modifier
             .offset {
                 IntOffset(
-                    animatedCardOffsetX.value.roundToInt(),
-                    animatedCardOffsetY.value.roundToInt()
+                    cardOffsetX.value.roundToInt(),
+                    cardOffsetY.value.roundToInt()
                 )
             }
             .graphicsLayer {
-                rotationZ = animatedCardOffsetX.value / 100
+                rotationZ = cardOffsetX.value / 100
             }
             .fillMaxSize()
             .border(
-                BorderStroke(borderStrokeWidth, cardState.value.borderColor),
+                BorderStroke(borderStrokeWidth, cardBorderColor.value),
                 shape = shape
             )
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragEnd = {
-                        handleSwipeEnd(
+                        handleSwipeGestureCompletion(
                             scope = scope,
-                            animatedCardOffsetX = animatedCardOffsetX,
-                            animatedCardOffsetY = animatedCardOffsetY,
-                            onLeftSwipe = onLeftSwipe,
-                            onRightSwipe = onRightSwipe,
-                            changeCardBorderColor = {
-                                cardState.value = cardState.value.copy(
-                                    borderColor = it
-                                )
+                            animatedCardOffsetX = cardOffsetX,
+                            animatedCardOffsetY = cardOffsetY,
+                            cardRotationY = cardRotationY,
+                            updateIsCardFlipped = {
+                                isCardFlipped.value = it
+                            },
+                            onSwipeLeft = onSwipeLeft,
+                            onSwipeRight = onSwipeRight,
+                            updateCardBorderColor = {
+                                cardBorderColor.value = it
                             },
                             swipeThreshold = swipeThreshold,
                             screenWidth = screenWidthPx,
@@ -175,16 +172,18 @@ fun FlashCard(
                         )
                     },
                     onDragCancel = {
-                        handleSwipeEnd(
+                        handleSwipeGestureCompletion(
                             scope = scope,
-                            animatedCardOffsetX = animatedCardOffsetX,
-                            animatedCardOffsetY = animatedCardOffsetY,
-                            onLeftSwipe = onLeftSwipe,
-                            onRightSwipe = onRightSwipe,
-                            changeCardBorderColor = {
-                                cardState.value = cardState.value.copy(
-                                    borderColor = it
-                                )
+                            animatedCardOffsetX = cardOffsetX,
+                            animatedCardOffsetY = cardOffsetY,
+                            cardRotationY = cardRotationY,
+                            updateIsCardFlipped = {
+                                isCardFlipped.value = it
+                            },
+                            onSwipeLeft = onSwipeLeft,
+                            onSwipeRight = onSwipeRight,
+                            updateCardBorderColor = {
+                                cardBorderColor.value = it
                             },
                             swipeThreshold = swipeThreshold,
                             screenWidth = screenWidthPx,
@@ -194,29 +193,23 @@ fun FlashCard(
                     onDrag = { change, dragAmount ->
                         change.consume()
                         scope.launch {
-                            animatedCardOffsetX.snapTo(animatedCardOffsetX.value + dragAmount.x)
-                            animatedCardOffsetY.snapTo(animatedCardOffsetY.value + dragAmount.y)
+                            cardOffsetX.snapTo(cardOffsetX.value + dragAmount.x)
+                            cardOffsetY.snapTo(cardOffsetY.value + dragAmount.y)
                         }
-                        //close to right
-                        if (animatedCardOffsetX.value > SWIPE_THRESHOLD) {
-                            cardState.value = cardState.value.copy(
-                                borderColor = rightSwipeColor
-                            )
-                            onCloseToRight()
+                        //approaching to right swipe
+                        if (cardOffsetX.value > SWIPE_GESTURE_THRESHOLD) {
+                            cardBorderColor.value = rightSwipeColor
+                            onApproachingRightSwipe()
                         }
-                        //close to left
-                        else if (animatedCardOffsetX.value < -SWIPE_THRESHOLD) {
-                            cardState.value = cardState.value.copy(
-                                borderColor = leftSwipeColor
-                            )
-                            onCloseToLeft()
+                        //approaching to left swipe
+                        else if (cardOffsetX.value < -SWIPE_GESTURE_THRESHOLD) {
+                            cardBorderColor.value = leftSwipeColor
+                            onApproachingLeftSwipe()
                         }
                         //neutral
                         else {
-                            cardState.value = cardState.value.copy(
-                                borderColor = Color.Transparent
-                            )
-                            onNeutral()
+                            cardBorderColor.value = Color.Transparent
+                            onNeutralPosition()
                         }
                     }
                 )
@@ -224,26 +217,33 @@ fun FlashCard(
             //clicking without ripple
             .pointerInput(Unit) {
                 detectTapGestures {
-                    cardState.value = cardState.value.copy(
-                        isFlipped = !cardState.value.isFlipped
-                    )
+                    isCardFlipped.value = !isCardFlipped.value
+                    scope.launch{
+                        cardRotationY.animateTo(
+                            targetValue = if(!isCardFlipped.value) 0f else 180f,
+                            animationSpec = tween(
+                                durationMillis = flipDuration,
+                                easing = LinearOutSlowInEasing
+                            )
+                        )
+                    }
                 }
             }
         ) {
-            CardSide(
+            FlashcardSide(
                 text = frontText,
                 rotationY = cardRotationY.value,
-                alpha = cardAlpha.value,
+                alpha = cardSidesAlpha.value,
                 shape = shape,
                 topButtonRow = topButtonRow,
                 backgroundColor = backgroundColor,
                 textColor = textColor
             )
 
-            CardSide(
+            FlashcardSide(
                 text = backText,
                 rotationY = -180f + cardRotationY.value,
-                alpha = 1f - cardAlpha.value,
+                alpha = 1f - cardSidesAlpha.value,
                 shape = shape,
                 topButtonRow = topButtonRow,
                 backgroundColor = backgroundColor,
@@ -255,7 +255,7 @@ fun FlashCard(
 }
 
 @Composable
-fun CardSide(
+fun FlashcardSide(
     text: String,
     rotationY: Float,
     alpha: Float,
@@ -270,7 +270,7 @@ fun CardSide(
             .graphicsLayer {
                 transformOrigin = TransformOrigin.Center
                 this.rotationY = rotationY
-                cameraDistance = CAMERA_DISTANCE
+                cameraDistance = CARD_CAMERA_DISTANCE
             }
             .alpha(alpha)
             .clip(shape)
@@ -291,13 +291,15 @@ fun CardSide(
     }
 }
 
-private fun handleSwipeEnd(
+private fun handleSwipeGestureCompletion(
     scope: CoroutineScope,
     animatedCardOffsetX: Animatable<Float, AnimationVector1D>,
     animatedCardOffsetY: Animatable<Float, AnimationVector1D>,
-    changeCardBorderColor: (Color) -> Unit,
-    onLeftSwipe: () -> Unit,
-    onRightSwipe: () -> Unit,
+    cardRotationY: Animatable<Float, AnimationVector1D>,
+    updateIsCardFlipped: (Boolean) -> Unit,
+    updateCardBorderColor: (Color) -> Unit,
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit,
     swipeThreshold: Float,
     screenWidth: Float,
     swipeDuration: Int
@@ -305,6 +307,10 @@ private fun handleSwipeEnd(
     scope.launch {
         when {
             animatedCardOffsetX.value > swipeThreshold -> {
+                updateIsCardFlipped(false)
+                launch{
+                    cardRotationY.snapTo(0f)
+                }
                 animatedCardOffsetX.animateTo(
                     targetValue = screenWidth * 1.5f,
                     animationSpec = tween(
@@ -312,12 +318,16 @@ private fun handleSwipeEnd(
                         easing = LinearEasing
                     )
                 )
-                onRightSwipe()
+                onSwipeRight()
                 delay(AFTER_SWIPE_DELAY)
-                resetCardPositionAndColor(animatedCardOffsetX, animatedCardOffsetY, changeCardBorderColor)
+                resetCardPositionAndColor(animatedCardOffsetX, animatedCardOffsetY, updateCardBorderColor)
             }
 
             animatedCardOffsetX.value < -swipeThreshold -> {
+                updateIsCardFlipped(false)
+                launch{
+                    cardRotationY.snapTo(0f)
+                }
                 animatedCardOffsetX.animateTo(
                     targetValue = -screenWidth * 1.5f,
                     animationSpec = tween(
@@ -325,9 +335,9 @@ private fun handleSwipeEnd(
                         easing = LinearEasing
                     )
                 )
-                onLeftSwipe()
+                onSwipeLeft()
                 delay(AFTER_SWIPE_DELAY)
-                resetCardPositionAndColor(animatedCardOffsetX, animatedCardOffsetY, changeCardBorderColor)
+                resetCardPositionAndColor(animatedCardOffsetX, animatedCardOffsetY, updateCardBorderColor)
             }
 
             else -> {
@@ -354,17 +364,6 @@ private suspend fun resetCardPositionAndColor(
 
 @Composable
 private fun animateAlphaAsState(targetValue: Float, durationMillis: Int) =
-    animateFloatAsState(
-        targetValue = targetValue,
-        animationSpec = tween(
-            durationMillis = durationMillis,
-            easing = LinearOutSlowInEasing
-        ),
-        label = ""
-    )
-
-@Composable
-private fun animateRotationYAsState(targetValue: Float, durationMillis: Int) =
     animateFloatAsState(
         targetValue = targetValue,
         animationSpec = tween(

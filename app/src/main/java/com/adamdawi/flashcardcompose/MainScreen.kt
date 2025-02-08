@@ -62,50 +62,54 @@ private val listOfFlashCardsTexts = mapOf(
 
 private const val COUNTERS_ANIMATION_TIME = 200
 
-data class CountersState(
-    val redCounter: Int = 0,
-    val greenCounter: Int = 0,
-    val greenCounterBg: Color = Color.Transparent,
-    val redCounterBg: Color = Color.Transparent
-)
-
 @Composable
 fun MainScreen() {
-
     val currentFlashCardNumber = remember {
         mutableIntStateOf(0)
     }
     // Counters states section
-    val countersState = remember {
-        mutableStateOf(CountersState())
+    val correctCount = remember {
+        mutableIntStateOf(0)
     }
 
-    val animatedGreenCounterBg = animateColorAsState(
-        targetValue = countersState.value.greenCounterBg,
+    val incorrectCount = remember {
+        mutableIntStateOf(0)
+    }
+
+    val correctBgColor = remember {
+        mutableStateOf(Color.Transparent)
+    }
+
+    val incorrectBgColor = remember {
+        mutableStateOf(Color.Transparent)
+    }
+
+    val animatedCorrectBg = animateColorAsState(
+        targetValue = correctBgColor.value,
         animationSpec = TweenSpec(
             durationMillis = COUNTERS_ANIMATION_TIME
         ),
         label = ""
     )
 
-    val animatedRedCounterBg = animateColorAsState(
-        targetValue = countersState.value.redCounterBg,
+    val animatedIncorrectBg = animateColorAsState(
+        targetValue = incorrectBgColor.value,
         animationSpec = TweenSpec(
             durationMillis = COUNTERS_ANIMATION_TIME
         ),
         label = ""
     )
 
-    val animatedAlphaRedCounter = animateFloatAsState(
-        targetValue = if (countersState.value.redCounterBg == Red) 1f else 0f,
+    val animatedCorrectAlpha = animateFloatAsState(
+        targetValue = if (correctBgColor.value == Green) 1f else 0f,
         animationSpec = TweenSpec(
             durationMillis = COUNTERS_ANIMATION_TIME
         ),
         label = ""
     )
 
-    val animatedAlphaGreenCounter = animateFloatAsState(
-        targetValue = if (countersState.value.greenCounterBg == Green) 1f else 0f,
+    val animatedIncorrectAlpha = animateFloatAsState(
+        targetValue = if (incorrectBgColor.value == Red) 1f else 0f,
         animationSpec = TweenSpec(
             durationMillis = COUNTERS_ANIMATION_TIME
         ),
@@ -122,17 +126,17 @@ fun MainScreen() {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TopButtons(
+            TopButtonsRow(
                 currentQuestionNumber = currentFlashCardNumber.intValue
             )
             HorizontalDivider(thickness = 3.dp, color = Blue)
             CountersRow(
-                redCounter = countersState.value.redCounter,
-                greenCounter = countersState.value.greenCounter,
-                greenCounterBg = animatedGreenCounterBg.value,
-                redCounterBg = animatedRedCounterBg.value,
-                redCounterAlpha = animatedAlphaRedCounter.value,
-                greenCounterAlpha = animatedAlphaGreenCounter.value
+                redCounter = incorrectCount.intValue,
+                greenCounter = correctCount.intValue,
+                greenCounterBg = animatedCorrectBg.value,
+                redCounterBg = animatedIncorrectBg.value,
+                redCounterAlpha = animatedIncorrectAlpha.value,
+                greenCounterAlpha = animatedCorrectAlpha.value
             )
             Spacer(modifier = Modifier.height(22.dp))
             Column(
@@ -144,37 +148,27 @@ fun MainScreen() {
                 FlashCard(
                     frontText = listOfFlashCardsTexts.keys.elementAt(currentFlashCardNumber.intValue % listOfFlashCardsTexts.size), //Avoided OutOfBounds index error with %
                     backText = listOfFlashCardsTexts.values.elementAt(currentFlashCardNumber.intValue % listOfFlashCardsTexts.size), //Avoided OutOfBounds index error with %
-                    onLeftSwipe = {
-                        countersState.value = countersState.value.copy(
-                            redCounter = countersState.value.redCounter + 1,
-                            greenCounterBg = Color.Transparent,
-                            redCounterBg = Color.Transparent
-                        )
+                    onSwipeLeft = {
+                        incorrectCount.intValue++
+                        correctBgColor.value = Color.Transparent
+                        incorrectBgColor.value = Color.Transparent
                         currentFlashCardNumber.intValue++
                     },
-                    onRightSwipe = {
-                        countersState.value = countersState.value.copy(
-                            greenCounter = countersState.value.greenCounter + 1,
-                            greenCounterBg = Color.Transparent,
-                            redCounterBg = Color.Transparent
-                        )
+                    onSwipeRight = {
+                        correctCount.intValue++
+                        correctBgColor.value = Color.Transparent
+                        incorrectBgColor.value = Color.Transparent
                         currentFlashCardNumber.intValue++
                     },
-                    onCloseToLeft = {
-                        countersState.value = countersState.value.copy(
-                            redCounterBg = Red
-                        )
+                    onApproachingLeftSwipe = {
+                        incorrectBgColor.value = Red
                     },
-                    onCloseToRight = {
-                        countersState.value = countersState.value.copy(
-                            greenCounterBg = Green
-                        )
+                    onApproachingRightSwipe = {
+                        correctBgColor.value = Green
                     },
-                    onNeutral = {
-                        countersState.value = countersState.value.copy(
-                            greenCounterBg = Color.Transparent,
-                            redCounterBg = Color.Transparent
-                        )
+                    onNeutralPosition = {
+                        correctBgColor.value = Color.Transparent
+                        incorrectBgColor.value = Color.Transparent
                     },
                     topButtonRow = {
                         FunctionButtonRow(
@@ -190,7 +184,7 @@ fun MainScreen() {
 }
 
 @Composable
-private fun TopButtons(
+private fun TopButtonsRow(
     modifier: Modifier = Modifier,
     currentQuestionNumber: Int
 ) {
