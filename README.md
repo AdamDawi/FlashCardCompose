@@ -15,7 +15,9 @@ Smooth swipe animations with rotation on the Z-axis.
 ### Customizable Design:
 Modify text, colors, shapes, and more to match your app's theme.
 
-## 🎥Here are some overview videos:
+## 🎥Here are some overview photos and videos:
+![Image](https://github.com/user-attachments/assets/d9c1a738-8ca4-49a3-aefd-4b9f54b591e9)
+![Image](https://github.com/user-attachments/assets/d69451ae-7150-4cc8-8672-bdb5d20419e0)
 
 ## ⚙️Installation
 To use this component in your Jetpack Compose project, simply copy the ``Flashcard`` composable into your project and customize it with your own text and styling.
