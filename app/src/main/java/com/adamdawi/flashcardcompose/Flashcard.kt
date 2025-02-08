@@ -60,7 +60,7 @@ private val BORDER_STROKE_WIDTH = 2.dp
 private const val AFTER_SWIPE_DELAY = 70L
 
 /**
- * FlashCard is a customizable component with flip and swipe animations.
+ * Flashcard is a customizable component with flip and swipe animations.
  * It allows users to interact with the card by tapping to flip or swiping left/right.
  *
  * @param modifier Modifier to apply to the flashcard container.
@@ -86,7 +86,7 @@ private const val AFTER_SWIPE_DELAY = 70L
  * @param onNeutralPosition Callback invoked when the card is in a neutral position.
  */
 @Composable
-fun FlashCard(
+fun Flashcard(
     modifier: Modifier = Modifier,
     frontText: String,
     backText: String,
@@ -230,7 +230,7 @@ fun FlashCard(
                 }
             }
         ) {
-            FlashCardSide(
+            FlashcardSide(
                 text = frontText,
                 rotationY = cardRotationY.value,
                 alpha = cardSidesAlpha.value,
@@ -240,7 +240,7 @@ fun FlashCard(
                 textColor = textColor
             )
 
-            FlashCardSide(
+            FlashcardSide(
                 text = backText,
                 rotationY = -180f + cardRotationY.value,
                 alpha = 1f - cardSidesAlpha.value,
@@ -255,7 +255,7 @@ fun FlashCard(
 }
 
 @Composable
-fun FlashCardSide(
+fun FlashcardSide(
     text: String,
     rotationY: Float,
     alpha: Float,
@@ -373,8 +373,8 @@ private fun animateAlphaAsState(targetValue: Float, durationMillis: Int) =
 
 @Preview
 @Composable
-private fun FlashCardPreview() {
-    FlashCard(
+private fun FlashcardPreview() {
+    Flashcard(
         frontText = "Eat",
         backText = "Cool"
     )

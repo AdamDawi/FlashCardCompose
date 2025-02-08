@@ -44,12 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.adamdawi.flashcardcompose.ui.theme.Blue
 import com.adamdawi.flashcardcompose.ui.theme.DarkBlue
-import com.adamdawi.flashcardcompose.ui.theme.FlashCardComposeTheme
+import com.adamdawi.flashcardcompose.ui.theme.FlashcardComposeTheme
 import com.adamdawi.flashcardcompose.ui.theme.Green
 import com.adamdawi.flashcardcompose.ui.theme.LightBlue
 import com.adamdawi.flashcardcompose.ui.theme.Red
 
-private val listOfFlashCardsTexts = mapOf(
+private val listOfFlashcardsTexts = mapOf(
     "hello" to "hola",
     "not much" to "no mucho",
     "fine" to "bien",
@@ -64,7 +64,7 @@ private const val COUNTERS_ANIMATION_TIME = 200
 
 @Composable
 fun MainScreen() {
-    val currentFlashCardNumber = remember {
+    val currentFlashcardNumber = remember {
         mutableIntStateOf(0)
     }
     // Counters states section
@@ -127,7 +127,7 @@ fun MainScreen() {
                 .padding(innerPadding)
         ) {
             TopButtonsRow(
-                currentFlashCardNumber = currentFlashCardNumber.intValue
+                currentFlashcardNumber = currentFlashcardNumber.intValue
             )
             HorizontalDivider(thickness = 3.dp, color = Blue)
             CountersRow(
@@ -145,20 +145,20 @@ fun MainScreen() {
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                FlashCard(
-                    frontText = listOfFlashCardsTexts.keys.elementAt(currentFlashCardNumber.intValue % listOfFlashCardsTexts.size), //Avoided OutOfBounds index error with %
-                    backText = listOfFlashCardsTexts.values.elementAt(currentFlashCardNumber.intValue % listOfFlashCardsTexts.size), //Avoided OutOfBounds index error with %
+                Flashcard(
+                    frontText = listOfFlashcardsTexts.keys.elementAt(currentFlashcardNumber.intValue % listOfFlashcardsTexts.size), //Avoided OutOfBounds index error with %
+                    backText = listOfFlashcardsTexts.values.elementAt(currentFlashcardNumber.intValue % listOfFlashcardsTexts.size), //Avoided OutOfBounds index error with %
                     onSwipeLeft = {
                         incorrectCount.intValue++
                         correctBgColor.value = Color.Transparent
                         incorrectBgColor.value = Color.Transparent
-                        currentFlashCardNumber.intValue++
+                        currentFlashcardNumber.intValue++
                     },
                     onSwipeRight = {
                         correctCount.intValue++
                         correctBgColor.value = Color.Transparent
                         incorrectBgColor.value = Color.Transparent
-                        currentFlashCardNumber.intValue++
+                        currentFlashcardNumber.intValue++
                     },
                     onLeftSwipeApproach = {
                         incorrectBgColor.value = Red
@@ -186,7 +186,7 @@ fun MainScreen() {
 @Composable
 private fun TopButtonsRow(
     modifier: Modifier = Modifier,
-    currentFlashCardNumber: Int
+    currentFlashcardNumber: Int
 ) {
     Row(
         modifier = modifier
@@ -207,7 +207,7 @@ private fun TopButtonsRow(
             )
         }
         Text(
-            text = "${currentFlashCardNumber+1}/88",
+            text = "${currentFlashcardNumber+1}/88",
             color = Color.White,
             textAlign = TextAlign.Center,
             fontSize = 18.sp,
@@ -371,7 +371,7 @@ private fun BottomButtons(
 @Preview
 @Composable
 private fun MainScreenPreview() {
-    FlashCardComposeTheme {
+    FlashcardComposeTheme {
         MainScreen()
     }
 }
