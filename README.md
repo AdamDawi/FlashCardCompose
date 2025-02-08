@@ -15,9 +15,12 @@ Swipe animations with rotation on the Z-axis.
 ### Customizable Design:
 Modify text, colors, shapes, and more to match your app's theme.
 
-## 🎥 Here are some overview photos and videos:
+
+## 🖼️ Here are some overview photos:
 ![Image](https://github.com/user-attachments/assets/d9c1a738-8ca4-49a3-aefd-4b9f54b591e9)
 ![Image](https://github.com/user-attachments/assets/d69451ae-7150-4cc8-8672-bdb5d20419e0)
+
+## 🎥 Here are some overview videos:
 ![Image](https://github.com/user-attachments/assets/54aa363e-76b2-4e7d-ad0a-3f7ecf2bf7de)
 ![Image](https://github.com/user-attachments/assets/80c70e27-3f99-452e-b036-a19a78bf8c1b)
 
