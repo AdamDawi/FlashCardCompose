@@ -1,23 +1,25 @@
 # ScratchCardCompose
-This project provides a customizable flashcard component in Jetpack Compose. The flashcard supports interactive features such as flipping on tap and swiping left or right.
+This project provides a customizable flashcard component in Jetpack Compose. The flashcard supports interactive features such as flipping on tap and swiping left or right. The design and functionality of the flashcard component were inspired by the popular [Quizlet](https://play.google.com/store/apps/details?id=com.quizlet.quizletandroid) app.
 
-## ⭐️Features
+## ⭐️ Features
 ### Flip Animation:
 Uses rotation along the Y-axis to create a flipping effect with ``cameraDistance``.
 - Rotation values range from 0f to 180f to simulate a full flip.
 - Alpha blending ensures only one side is visible at a time when the animation is complete.
 
 ### Swipe Animation: 
-Smooth swipe animations with rotation on the Z-axis.
+Swipe animations with rotation on the Z-axis.
 - **Card Slide Out of View:** Cards smoothly slide out of the screen when swiped.
 - **Border Color Indications:** Highlights the card border when approaching a swipe threshold.
 
 ### Customizable Design:
 Modify text, colors, shapes, and more to match your app's theme.
 
-## 🎥Here are some overview photos and videos:
+## 🎥 Here are some overview photos and videos:
 ![Image](https://github.com/user-attachments/assets/d9c1a738-8ca4-49a3-aefd-4b9f54b591e9)
 ![Image](https://github.com/user-attachments/assets/d69451ae-7150-4cc8-8672-bdb5d20419e0)
+![Image](https://github.com/user-attachments/assets/54aa363e-76b2-4e7d-ad0a-3f7ecf2bf7de)
+![Image](https://github.com/user-attachments/assets/80c70e27-3f99-452e-b036-a19a78bf8c1b)
 
 ## ⚙️Installation
 To use this component in your Jetpack Compose project, simply copy the ``Flashcard`` composable into your project and customize it with your own text and styling.
@@ -51,8 +53,6 @@ The flashcard component is built using a layered rendering approach:
   - If the drag exceeds the threshold, the card moves off-screen horizontally by 1.5 times the ``screenWidth`` and rotates back to 0°. The appropriate callback (``onSwipeLeft`` or ``onSwipeRight``) is triggered, and the card resets.
 - **Reset Position:**
   - After the swipe, the card’s position and border color reset to their initial state.
-
-## 🎨Customize Options
 
 ## 🎨 Customize Options
 
