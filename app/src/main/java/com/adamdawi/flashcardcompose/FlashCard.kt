@@ -81,8 +81,8 @@ private const val AFTER_SWIPE_DELAY = 70L
  * @param swipeThreshold Threshold for detecting a swipe gesture.
  * @param onSwipeLeft Callback invoked when the card is swiped to the left.
  * @param onSwipeRight Callback invoked when the card is swiped to the right.
- * @param onApproachingRightSwipe Callback invoked when the card is close to being swiped to the right.
- * @param onApproachingLeftSwipe Callback invoked when the card is close to being swiped to the left.
+ * @param onRightSwipeApproach Callback invoked when the card is close to being swiped to the right.
+ * @param onLeftSwipeApproach Callback invoked when the card is close to being swiped to the left.
  * @param onNeutralPosition Callback invoked when the card is in a neutral position.
  */
 @Composable
@@ -105,8 +105,8 @@ fun FlashCard(
     swipeThreshold: Float = SWIPE_GESTURE_THRESHOLD,
     onSwipeLeft: () -> Unit = {},
     onSwipeRight: () -> Unit = {},
-    onApproachingRightSwipe: () -> Unit = {},
-    onApproachingLeftSwipe: () -> Unit = {},
+    onRightSwipeApproach: () -> Unit = {},
+    onLeftSwipeApproach: () -> Unit = {},
     onNeutralPosition: () -> Unit = {}
 ) {
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
@@ -199,12 +199,12 @@ fun FlashCard(
                         //approaching to right swipe
                         if (cardOffsetX.value > SWIPE_GESTURE_THRESHOLD) {
                             cardBorderColor.value = rightSwipeColor
-                            onApproachingRightSwipe()
+                            onRightSwipeApproach()
                         }
                         //approaching to left swipe
                         else if (cardOffsetX.value < -SWIPE_GESTURE_THRESHOLD) {
                             cardBorderColor.value = leftSwipeColor
-                            onApproachingLeftSwipe()
+                            onLeftSwipeApproach()
                         }
                         //neutral
                         else {
@@ -230,7 +230,7 @@ fun FlashCard(
                 }
             }
         ) {
-            FlashcardSide(
+            FlashCardSide(
                 text = frontText,
                 rotationY = cardRotationY.value,
                 alpha = cardSidesAlpha.value,
@@ -240,7 +240,7 @@ fun FlashCard(
                 textColor = textColor
             )
 
-            FlashcardSide(
+            FlashCardSide(
                 text = backText,
                 rotationY = -180f + cardRotationY.value,
                 alpha = 1f - cardSidesAlpha.value,
@@ -255,7 +255,7 @@ fun FlashCard(
 }
 
 @Composable
-fun FlashcardSide(
+fun FlashCardSide(
     text: String,
     rotationY: Float,
     alpha: Float,
@@ -278,9 +278,7 @@ fun FlashcardSide(
             .padding(32.dp),
         contentAlignment = Alignment.TopCenter
     ) {
-        if(topButtonRow!=null){
-            topButtonRow()
-        }
+        topButtonRow?.invoke()
         Text(
             modifier = Modifier.align(Alignment.Center),
             text = text,

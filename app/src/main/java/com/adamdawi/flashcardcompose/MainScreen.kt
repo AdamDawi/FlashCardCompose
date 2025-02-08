@@ -127,7 +127,7 @@ fun MainScreen() {
                 .padding(innerPadding)
         ) {
             TopButtonsRow(
-                currentQuestionNumber = currentFlashCardNumber.intValue
+                currentFlashCardNumber = currentFlashCardNumber.intValue
             )
             HorizontalDivider(thickness = 3.dp, color = Blue)
             CountersRow(
@@ -160,10 +160,10 @@ fun MainScreen() {
                         incorrectBgColor.value = Color.Transparent
                         currentFlashCardNumber.intValue++
                     },
-                    onApproachingLeftSwipe = {
+                    onLeftSwipeApproach = {
                         incorrectBgColor.value = Red
                     },
-                    onApproachingRightSwipe = {
+                    onRightSwipeApproach = {
                         correctBgColor.value = Green
                     },
                     onNeutralPosition = {
@@ -186,7 +186,7 @@ fun MainScreen() {
 @Composable
 private fun TopButtonsRow(
     modifier: Modifier = Modifier,
-    currentQuestionNumber: Int
+    currentFlashCardNumber: Int
 ) {
     Row(
         modifier = modifier
@@ -207,7 +207,7 @@ private fun TopButtonsRow(
             )
         }
         Text(
-            text = "${currentQuestionNumber+1}/88",
+            text = "${currentFlashCardNumber+1}/88",
             color = Color.White,
             textAlign = TextAlign.Center,
             fontSize = 18.sp,
