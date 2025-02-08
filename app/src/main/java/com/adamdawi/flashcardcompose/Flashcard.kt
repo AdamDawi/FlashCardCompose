@@ -114,7 +114,8 @@ fun Flashcard(
     val scope = rememberCoroutineScope()
     val isCardFlipped = remember { mutableStateOf(false) }
     val cardBorderColor = remember { mutableStateOf(Color.Transparent) }
-    val cardSidesAlpha = animateAlphaAsState(targetValue = if (!isCardFlipped.value) 1f else 0f, alphaDuration)
+    val cardSidesAlpha =
+        animateAlphaAsState(targetValue = if (!isCardFlipped.value) 1f else 0f, alphaDuration)
     val cardRotationY = remember {
         Animatable(0f)
     }
@@ -218,9 +219,9 @@ fun Flashcard(
             .pointerInput(Unit) {
                 detectTapGestures {
                     isCardFlipped.value = !isCardFlipped.value
-                    scope.launch{
+                    scope.launch {
                         cardRotationY.animateTo(
-                            targetValue = if(!isCardFlipped.value) 0f else 180f,
+                            targetValue = if (!isCardFlipped.value) 0f else 180f,
                             animationSpec = tween(
                                 durationMillis = flipDuration,
                                 easing = LinearOutSlowInEasing
@@ -230,6 +231,7 @@ fun Flashcard(
                 }
             }
         ) {
+            //front side of card
             FlashcardSide(
                 text = frontText,
                 rotationY = cardRotationY.value,
@@ -239,7 +241,7 @@ fun Flashcard(
                 backgroundColor = backgroundColor,
                 textColor = textColor
             )
-
+            //back side of card
             FlashcardSide(
                 text = backText,
                 rotationY = -180f + cardRotationY.value,
@@ -249,7 +251,6 @@ fun Flashcard(
                 backgroundColor = backgroundColor,
                 textColor = textColor
             )
-
         }
     }
 }
@@ -306,7 +307,7 @@ private fun handleSwipeGestureCompletion(
         when {
             animatedCardOffsetX.value > swipeThreshold -> {
                 updateIsCardFlipped(false)
-                launch{
+                launch {
                     cardRotationY.snapTo(0f)
                 }
                 animatedCardOffsetX.animateTo(
@@ -318,12 +319,16 @@ private fun handleSwipeGestureCompletion(
                 )
                 onSwipeRight()
                 delay(AFTER_SWIPE_DELAY)
-                resetCardPositionAndColor(animatedCardOffsetX, animatedCardOffsetY, updateCardBorderColor)
+                resetCardPositionAndColor(
+                    animatedCardOffsetX,
+                    animatedCardOffsetY,
+                    updateCardBorderColor
+                )
             }
 
             animatedCardOffsetX.value < -swipeThreshold -> {
                 updateIsCardFlipped(false)
-                launch{
+                launch {
                     cardRotationY.snapTo(0f)
                 }
                 animatedCardOffsetX.animateTo(
@@ -335,7 +340,11 @@ private fun handleSwipeGestureCompletion(
                 )
                 onSwipeLeft()
                 delay(AFTER_SWIPE_DELAY)
-                resetCardPositionAndColor(animatedCardOffsetX, animatedCardOffsetY, updateCardBorderColor)
+                resetCardPositionAndColor(
+                    animatedCardOffsetX,
+                    animatedCardOffsetY,
+                    updateCardBorderColor
+                )
             }
 
             else -> {
