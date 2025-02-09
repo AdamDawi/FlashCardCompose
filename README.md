@@ -1,5 +1,5 @@
 # ScratchCardCompose
-This project provides a customizable flashcard component in Jetpack Compose. The flashcard supports interactive features such as flipping on tap and swiping left or right. The design and functionality of the flashcard component were inspired by the popular [Quizlet](https://play.google.com/store/apps/details?id=com.quizlet.quizletandroid) app.
+This project provides a customizable flashcard component in Jetpack Compose. The flashcard supports interactive features such as flipping on tap and swiping left or right. The design and functionality of the flashcard component were inspired by the popular [Quizlet](https://play.google.com/store/apps/details?id=com.quizlet.quizletandroid) app. For a real-world usage example, see this component in the full project [here](https://github.com/AdamDawi/Foodder).
 
 ## ⭐️ Features
 ### Flip Animation:
